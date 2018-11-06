@@ -9,8 +9,8 @@ REF Github : https://github.com/lemmingapex/Trilateration
 
 
 ### Util_2
-REF : https://everything2.com/title/Triangulate
-REF2 : https://stackoverflow.com/questions/20332856/triangulate-example-for-ibeacons
+* REF : https://everything2.com/title/Triangulate
+* REF2 : https://stackoverflow.com/questions/20332856/triangulate-example-for-ibeacons
 
 #### 참고내용
 * 3 개의 지점을 알고 있을 때, 이용할 수 있는 방법.
