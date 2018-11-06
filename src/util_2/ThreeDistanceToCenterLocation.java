@@ -48,19 +48,19 @@ public class ThreeDistanceToCenterLocation {
 			getMaxLocation(a, b, c, d, e, f);
 			getMinLocation(a, b, c, d, e, f);
 			
-			height = Math.toRadians(maxLat - minLat);
-			width = Math.toRadians(maxLong - minLong);
+			height = deg2rad(maxLat - minLat);
+			width = deg2rad(maxLong - minLong);
 			
 			System.out.println("## Traingle info");
 			System.out.println("Width : " + width);
 			System.out.println("Height : " + height);
 			
-			double bAlat = Math.toRadians(a - minLat);
-			double bAlong = Math.toRadians(b - minLong);
-			double bBlat = Math.toRadians(c - minLat);
-			double bBlong = Math.toRadians(d - minLong);
-			double bClat = Math.toRadians(e - minLat);
-			double bClong = Math.toRadians(f - minLong);
+			double bAlat = deg2rad(a - minLat);
+			double bAlong = deg2rad(b - minLong);
+			double bBlat = deg2rad(c - minLat);
+			double bBlong = deg2rad(d - minLong);
+			double bClat = deg2rad(e - minLat);
+			double bClong = deg2rad(f - minLong);
 			
 			System.out.println("Location A Point : " + bAlat +" / " + bAlong);
 			System.out.println("Location B Point : " + bBlat +" / " + bBlong);
@@ -138,5 +138,9 @@ public class ThreeDistanceToCenterLocation {
 		if(maxLong < f) {
 			maxLong = f;
 		}
+	}
+	
+	private static double deg2rad(double deg) {
+	    return (deg * Math.PI / 180.0);
 	}
 }
