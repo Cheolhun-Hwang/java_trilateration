@@ -1,5 +1,59 @@
 # 자바 삼각측량 관련 모음
 
+--------------------------------------
+## Infomation
+
+### 환경 정의
+1. 각 스캐너의 좌표는 "절대 좌표"이다.
+2. API 방식이 아닌 "모듈" 방식의 호출로써 동작한다.
+3. 각 스캐너 디바이스의 좌표값과 비콘까지의 RSSI, TX 값을 받는다.
+
+### IBeacon Infomation
+원문 : https://arsviator.blogspot.com/2015/02/beacon.html
+
+* 애플이 iOS7에서 iBeacon 기술을 소개했을 때, 애플의 문서는 거리 추정치를 직접 사용하지 않는걸 권장했다. 비이컨 범위 정보를 제공하는 CLBeacon 클래스는 비이컨과의 거리 추정치를 미터 단위로 제공하는 필드를 가지고 있다. 하지만 이 속성을 distance라고 부르는 대신 애플은 accuracy라고 이름붙였다. 권장하는 사용법은 이 값을 여러 비이컨들 중에 어느것이 가장 가까운가 비교하는 용도로만 사용하는 것이다. 또한 CLBeacon 클래스는 proximity라는 속성을 제공해 거리 추정치를 “immediate”, “near”, “far”로 그룹핑 한다. 이 각 그룹의 정의는 명확하지 않지만, 실험 결과 0.5미터 이내의 거리는 “immediate”, 0.5~3m 정도는 “near”, 그 이상은 “far”로 구분한다고 볼 수 있다.
+* 이런 내용이 비이컨을 사용해 직접적으로 거리를 측정할 수 없다는걸 의미하지는 않는다. 단지 비이컨의 동작 원리와 결과값의 품질에 어떤 한계가 있는지를 먼저 이해할 필요가 있다는걸 의미한다.
+* 모바일 디바이스는 비이컨의 신호레벨을 레퍼런스 신호레벨과 비교함으로서 비이컨과의 거리를 추정할 수 있다. 비이컨이 adv한 패킷이 수신될 때 마다 블루투스 칩은 비이컨의 신호레벨 측정값을 RSSI로 제공한다. 각 비이컨 전송은 위에서 언급한 calibration 값을 포함하고 있기 때문에, 실제 시그널 레벨을 1머터에서 기대되는 시그널 레벨과 비교해서 거리를 추정할 수 있다. 예를들어 비이컨 adv 패킷이 -65 dBm 시그널 레벨로 수신되었고 송신기의 출력 calibration값은 -59 dBm이라고 해 보자. -65 dBm은 -59dBm보다 약한 신호레벨이므로, 즉 비이컨은 1미터보다 먼 거리에 있을 가능성이 크다는걸 의미한다.
+* 거리를 추정하기 위해 이 두 숫자를 공식에 집어넣을 수 있다. 아래 공식은 Android Beacon Library에 사용한 것이다. 공식의 3개의 상수(0.89976, 7.7095, 0.111)는 여러 정해진 거리에서 넥서스4를 사용해 측정한 신호 세기에 기반해 best fit으로 계산한 값이다. 
+
+```
+// txPower, Rssi 값을 통한 거리 추정
+protected static double calculateAccuracy(int txPower, double rssi) {
+	if (rssi == 0) {
+		return -1.0; // if we cannot determine accuracy, return -1.
+	}
+	double ratio = rssi*1.0/txPower;
+	if (ratio < 1.0) {
+		return Math.pow(ratio,10);
+	}
+	else {
+		double accuracy =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;	
+		Log.d(TAG, " avg rssi: "+rssi+" accuracy: "+accuracy);
+		return accuracy;
+	}
+}
+  
+// 거리 추정치에 대한 지수 변환 ( 구분 : Immediate, near, far )
+protected static int calculateProximity(double accuracy) {
+  if (accuracy < 0) {
+    return PROXIMITY_UNKNOWN;	 
+    // is this correct?  
+    // does proximity only show unknown when accuracy is negative?  
+    // I have seen cases where it returns unknown when accuracy is -1;
+    }
+	if (accuracy < 0.5 ) {
+		return IBeacon.PROXIMITY_IMMEDIATE;
+	}
+	if (accuracy <= 3.0) { 
+		return IBeacon.PROXIMITY_NEAR;
+	}
+	// if it is > 3.0 meters, call it far
+	return IBeacon.PROXIMITY_FAR;
+}
+
+```
+
+
 ---------------------------------------
 
 ### Package : Util_1
@@ -114,4 +168,5 @@ Location Target Point : 1.7453292513081898E-7 / 0.0
 * 실험을 비콘의 오차범위 이내로 진행하였기 때문에, 위의 결과 값은 문제가 있음.
 * 위치 값은 자체 제작 안드로이드 애플리케이션을 통해 획득. 단, 안드로이드의 경우 실내에서는 GPS 값은 Network로만 받음.
   즉, 위치에 대한 정확도에 문제가 있음.
+  
   
